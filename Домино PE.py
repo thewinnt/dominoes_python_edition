@@ -15,8 +15,8 @@ gametick = pygame.time.Clock()
 icon = pygame.image.load("assets/window.png")
 pygame.display.set_icon(icon)
 window = pygame.display.set_mode((1280, 720))
-pygame.display.set_caption("Домино: Python Edition v. Beta 1.4")
-game_version = "v. Beta 1.4"
+pygame.display.set_caption("Домино: Python Edition v. Beta 1.5 development version")
+game_version = "v. Beta 1.5 (work in progress)"
 
 useless = tk.Tk()
 useless.withdraw()
@@ -62,7 +62,8 @@ splashes = ["Python recreation!",
             "thinn fonts",
             "As simple as possible!",
             "I'm lazy",
-            "Contains some bugs!"] # the list of existing splashes
+            "Contains some bugs!",
+            "Now on GitHub!"] # the list of existing splashes
 random_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/*-+()[]{}абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ" # the list of charasters that are used in splashes with randomized characters
 ##color_menu_light = (3, 209, 255)
 ##color_button_light = (1, 175, 216)
@@ -2100,18 +2101,19 @@ def theme_set_ui(source="settings"): # a sub-ui inside the settings menu - here 
     global current_ui
     global config_data
     global is_theme_updated
-    if scroll_offset > 0:
-        scroll_offset = 0
-    elif scroll_offset < (150*(len(theme_list)-3))*-1:
-        scroll_offset = (150*(len(theme_list)-3))*-1
-    max_offset = (150*(len(theme_list)-3))
-    scroll_percent = round(scroll_offset/-max_offset, 2)
-    scroller_size = int(40000/max_offset)
-    max_physical_offset = 370 - scroller_size
-    if scroller_size < 40:
-        scroller_size = 40
-    scroller_pos = (370 - scroller_size) * scroll_percent
-    scroll_per_pixel = max_offset / max_physical_offset
+    if len(theme_list) > 3:
+        if scroll_offset > 0:
+            scroll_offset = 0
+        elif scroll_offset < (150*(len(theme_list)-3))*-1:
+            scroll_offset = (150*(len(theme_list)-3))*-1
+        max_offset = (150*(len(theme_list)-3))
+        scroll_percent = round(scroll_offset/-max_offset, 2)
+        scroller_size = int(40000/max_offset)
+        max_physical_offset = 370 - scroller_size
+        if scroller_size < 40:
+            scroller_size = 40
+        scroller_pos = (370 - scroller_size) * scroll_percent
+        scroll_per_pixel = max_offset / max_physical_offset
     # draw the window
     pygame.draw.rect(theme_surface, current_theme[10], (0, 0, 780, 620))
     pygame.draw.rect(theme_surface, current_theme[0], (0, 0, 780, 620), 4)
@@ -2213,6 +2215,7 @@ def theme_set_ui(source="settings"): # a sub-ui inside the settings menu - here 
                     scroll_offset += 50
                 if event.button == 5:
                     scroll_offset -= 50
+    # go back button
     back = button(current_theme[10], 650, 570, 120, 40, "Назад")
     if back.isOver(win_pos):
         back.color = current_theme[8]
@@ -2223,7 +2226,8 @@ def theme_set_ui(source="settings"): # a sub-ui inside the settings menu - here 
     if not back.isOver(win_pos) and not pygame.mouse.get_pressed()[0]:
         back.color = current_theme[10]
     back.draw(theme_surface, current_theme[11], current_theme[11])
-    back = button(current_theme[10], 550, 430, 120, 40, "Импорт")
+    # import button
+    back = button(current_theme[10], 550, 415, 100, 30, "Импорт")
     if back.isOver(win_pos):
         back.color = current_theme[8]
         if pygame.mouse.get_pressed()[0]:
@@ -2237,10 +2241,54 @@ def theme_set_ui(source="settings"): # a sub-ui inside the settings menu - here 
                     config_data.append(str(i))
     if not back.isOver(win_pos) and not pygame.mouse.get_pressed()[0]:
         back.color = current_theme[10]
-    back.draw(theme_surface, current_theme[11], current_theme[11])
+    back.draw(theme_surface, current_theme[11], current_theme[11], 50)
+    # theme editor button
+    back = button(current_theme[10], 660, 415, 100, 30, "Создать")
+    if back.isOver(win_pos):
+        back.color = current_theme[8]
+        if pygame.mouse.get_pressed()[0]:
+            back.color = current_theme[9]
+            pygame.event.clear()
+            new_theme = theme_editor(current_theme)
+            if not new_theme == 'cancel':
+                theme_list.append(new_theme)
+                config_data.append(str(new_theme))
+    if not back.isOver(win_pos) and not pygame.mouse.get_pressed()[0]:
+        back.color = current_theme[10]
+    back.draw(theme_surface, current_theme[11], current_theme[11], 50)
     theme_surface.blit(inner_surface, (20, 135))
     pygame.draw.rect(theme_surface, current_theme[0], (20, 135, 510, 450), 4)
     window.blit(theme_surface, (250, 50))
+
+def theme_editor(current_theme):
+    editor = pygame.Surface((960, 640))
+    character_list = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+    new_theme = current_theme
+    new_theme[16] = ''
+    new_theme[17] = ''
+    new_theme[18] = ''
+    for i in range(random.randint(1, 15)):
+        new_theme[16] += random.choice(character_list)
+    for i in range(random.randint(1, 15)):
+        new_theme[17] += random.choice(character_list)
+    for i in range(random.randint(1, 15)):
+        new_theme[18] += random.choice(character_list)
+    selected_element = 0
+    while True:
+        editor.fill(new_theme[10])
+        pygame.draw.rect(editor, new_theme[0], (0, 0, 960, 640), 4)
+        pygame.draw.rect(editor, new_theme[8], (0, 0, 960, 40))
+        pygame.draw.rect(editor, new_theme[0], (0, 0, 960, 40), 4)
+        keys = pygame.key.get_pressed()
+        if bool(pygame.event.get(pygame.MOUSEBUTTONDOWN)) or keys[pygame.K_ESCAPE]:
+            pygame.event.clear()
+            print(new_theme)
+            return 'cancel'
+        pygame.draw.rect(editor, new_theme[0], (700, 55, 245, 570), 4)
+        if selected_element < 16:
+            pass
+        window.blit(editor, (160, 40))
+        pygame.display.update()
         
 delay = 6
 while True: # game tick, running at 60 TPS
@@ -2257,7 +2305,7 @@ while True: # game tick, running at 60 TPS
         pygame.quit()
         break
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_ESCAPE] and not current_ui == "pause" and not current_ui == "settings":
+    if keys[pygame.K_ESCAPE] and not current_ui == "pause" and not current_ui == "settings" and not current_ui == "theme_settings" and not curent_ui == "theme_pause":
         backup_ui = current_ui
         current_ui = "pause"
         pygame.event.clear()
