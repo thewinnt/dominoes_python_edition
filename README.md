@@ -1,6 +1,8 @@
 # dominoes_python_edition
 A Dominoes game made in Python.
+
 Requires pygame, to start the game, run the file "Dominoes PE (v. Beta 1.6.2-en).py"
+
 Based on the Scratch version: https://scratch.mit.edu/projects/288062011/ (it's in Russian)
 
 ### This project is abandoned.
