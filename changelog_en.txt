@@ -1,0 +1,138 @@
+0.1 (07.07.2020)
++ Added main menu
++ Added a game mode selection menu, where only local game is currently available
++ Added a rendering system - dominoes go in a snake two sides away from the center
++ Added the ability to move the image, it is unused
++ Added splashed - the funny text near the name of the game
++ When pressing the "Local game" button, the field fills with dominoes, after that the game technically gives the dominoes to players
++ Players' dominoes can now be shown, this is currently unused
++ Added light (default) and dark themes, you can't change it yet
+
+Alpha 1.0/0.2 (31.07.2020)
++ The ability to move the image is now used
++ The ability to show the players' dominoes is now used
++ You can now place dominoes
++ You can now see the game version in main menu
+
+Alpha 1.1 (01.08.2020)
++ You can now give yourself dominoes, but only when it's your turn
++ If there are no backup dominoes, the turn is automatically given to the next player
++ The players' names, scores and victories are now shown near their names, nothing can be changed yet
+* Fixed bugs
+
+Alpha 1.2 (14.08.2020)
++ The game can now end
++ When the game ends, the scores are counted, added to the players and a new battle ends
++ Added splashes for special events, they and only they will show up on a corresponding day
+* The default theme is the dark theme now
+* Fixed bugs
+* Time spent - 3 hours
+
+Beta 1.0 (15.08.2020)
++ After the scores are counted, a window shows up where you can see how much points were added and there's a button to start a new battle
++ If the player can place a domino on both sides, it will be displayed on the side where the cursor is (above or below the middle), left-click to place it
+* Time spent - 2.5 hours
+
+Beta 1.1 (06.09.2020)
++ Added settings menu
++ You can now change the theme (default - dark)
++ You can now disable the big windows where the players' scores are updated and instead, they will update right next to players' dominoes (enabled by default)
++ Added fast mode when you don't have to confirm turn changes
++ Added an FPS counter
+* The game was heavily optimized - now you don't have to click on buttons a thousand times for them to work
+* Time spent - a few days with breaks (10-20 hours total)
+
+Beta 1.2 (06.09.2020)
++ Settings are now saved in the "domino_config.dc1" file
+* Fixed bugs
+* Time spent - 2 hours
+
+Beta 1.3 (11.09.2020)
++ New game mode: "Singleplayer"! In this game mode you fight with a simple bot that always hopes for their luck.
++ New game mode: "Bot battle"! In this game mode, two of those bots fight each other. It's really useless, but it's fun and perfect for debugging :)
++ Fast mode is always enabled in the new modes
++ To exit the game in new modes, you should:
+  1. Press Alt + F4, if the game's going
+  2. If the battle has ended, try to close the window like usual and click "Next"
++ Added a few new splashes
++ If a bot does a mistake (tries to place a wrong domino or something), no message is sent to the console
++ There can now be random characters in splashes
+- No more messages in the console when the game ends
+* BUG: You can't really use the mouse when it's the bot's turn (that's how they work, not gonna fix soon)
+* BUG: The FPS counter shows weird values when the bot takes a while to make its turn (really apparent in the "bot battle", difficult to fix, not gonna do it soon)
+* Fixed bugs
+* It was much easier to add the new game modes that I thought :)
+* Time spent - around 5-6 hours
+
+Beta 1.4 (02.10.2020)
++ Added the ability to load new themes!
++ Added the ability to choose themes from a list! To do this, go to Settings -> Theme settings... and select the one you want
++ In the theme selection menu there's theme preview - there are all the colors in a theme. There also a switch and a button that you can press to see the colors
++ The settings and the theme selection menu now look like windows, but nothing behind them updates
++ You can now load themes from files (one or several, each on a new line), But first you have to create them (info below)
++ You can scroll the theme list with 3 methods:
+  1. With arrows to the right from the list,
+  2. With the slider there,
+  3. Using mouse wheel
++ Settings are now saved in a new format (.dc2), which is really different to the previous one
++ Added some new splashes
+- Removed the dark theme switch
+* Theme format changes - added metadata (name, author, description, version), the version is 0 as of now
+* Here's the new theme format (for creatros): [windows' and dominoes' borders, dominoes' color, 1, 2, 3, 4, 5, 6, game background and hovered button and window background, pressed and inactive buttons, regular buttons and window backgrounds, text, text on inactive buttons, splash text, victory and enabled switch, failure and disabled switch, author, name, description, version (0 for Beta 1.4)]
+* All the colors (everything before "author") are coded like this: (red, green, blue), parentheses are necessary, texts are in quotes, for exxample: [(56, 51, 65), (86, 64, 166), (97, 91, 205), (103, 180, 2), (78, 85, 90), (0, 0, 0), (56, 51, 65), (86, 64, 166), (97, 91, 205), (103, 180, 2), (78, 85, 90), (0, 0, 0), (56, 51, 65), (86, 64, 166), (97, 91, 205), (103, 180, 2),"WinNT","Example","Just an example theme",0]
+* Bug fixes
+* Time spent - 20 hours or something
+
+Beta 1.4.1 (03.10.2020)
++ New splash: "Now on GitHub!"
+* Bug fixes:
+  1. Fixed the theme list blinking when there are less that 3 themes
+  2. You can no longer pause the game while choosing the theme
+  3. Import new theme button is now a bit smaller
+
+Beta 1.5 (05.12.2020)
++ Settings are now saved in JSON format, making the future settings files backwards-compatible
++ You can now change the score limit, players' dominoes amount and the minimal score values before you start the game, as well as change the game mode
++ Added a back to main menu button on the pause screen
++ Added a quit game button on the main menu
++ Added some new splashes
+* The game won't crash if you cancel importing the theme
+* AI no longer controls your mouse
+* The FPS counter now accepts all frame updates
+* Fixed a typo that caused the game to crash when you paused it
+* Buttons in the main menu are now a bit longer and closer to each other
+** Fun fact: this update has the most changes done right before the release, specifically, everything except settings format, game parameters editing and splash removal
+- Removed splash: "Now on GitHub!"
+
+Beta 1.5.1 (06.12.2020)
+* Theme importing now works
+** Time spent - less than a minute
+
+Beta 1.5.2 (06.12.2020)
+* Theme importing now finally works
+** Time spent - around  5 minutes
+
+Beta 1.6 (29.12.2020)
++ You can now remove themes
++ The "How to play" button now works
++ New rule: the first move in a game (not a battle!) must be with a double, equal to the game number mod 7. It's DISABLED by edfault, because the rule is not very popular
++ The first player to make a move is now the one who ended the last battle (when a new one begins) or the one with the smallest double on them (when a new game begins)
++ A draw is now correctly registered - both players now win
++ Added a few more splashes
++ Player names now change depending on the game mode
++ You can now change the time that the score display after the battle will blink for. (hope you understood)
++ Added sounds for placing dominoes and making mistakes, you can toggle them separately
+* Theme selection area now has a different color
+* The game now restarts after exiting to menu
+* Clicking anywhere outside of the player inventories is no longer a mistake
+* The game is now able to detect missing settings and add them, this should help when updating
+** Time spent - 15-20 hours
+
+Beta 1.6.1 (30.12.2020)
+* Sound settings now properly apply when starting the game
+** Time spent - 1 minute
+
+Beta 1.6.2 (31.12.2020)
+* You can no longer delete themes by scrolling mouse wheel on the "Delete" button
+** Time spent - around 5 minutes
+** Last update in 2020
