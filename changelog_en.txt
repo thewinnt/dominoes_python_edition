@@ -137,14 +137,35 @@ Beta 1.6.2 (31.12.2020)
 ** Time spent - around 5 minutes
 ** Last update in 2020
 
-Beta 1.7-pre1 (30.08.2021)
-+ Pressing Esc can now not only pause the game, but also return you to a previous menu, close menus and continue after pausing
-+ Theme format updated - added a separate color for the divider on dominoes, as well as colors for the numbers 7, 8 and 9
+Beta 1.7 (05.09.2021)
++ You can now save the game! There's a button for that in the pause menu
++ You can now continue the game if you went to main menu accidentally
++ You can now have 3 or 4 players!
++ Singleplayer is still "single player" and bot battle still has no humans
++ When there are more that 2 players, the side ones can scroll their inventories when there's not enough space for all the dominoes
++ Pressing Esc can now not only pause the game, but also return you to a previous menu, close menus and continue after pausing, same with button 4 on the mouse (it's on the side, the one closer to you), but it can't open pause menu
++ The current player is now highlighted
++ You can now change the size of the board with + and -
++ Press * to reset it
++ The settings now save immediately after closing them
++ The splash in the main menu now pulsates
++ Added some splashes
++ Theme format updated - added a separate color for the divider on dominoes, a new button color, as well three other colors
 + The game will automatically update the themes, not changing its look (the new numbers will be the same as 6)
+* The preview when choosing a side to place the domino is now always correct
+* The default game settings have been changed to more common ones
+* The buttons for getting a domino have been changed
+* Changed the number colors to improve visibility
 * Themes created for the future versions of the game (version 2 and higher) will no longer load
 * You can no longer delete the current theme
-* The scroll bar in the theme selection menu no longer intersects with the themes
+* The scroll bar in the theme selection menu no longer intersects the themes
 * The switches in the theme demos no longer change when you scroll on them
 * The buttons in the main menu and a bit higher and closer to each other
+* Moved the version number 4 pixels to the right
 * The game name is now properly centered
+* Some other accidental bug fixes
+* Some other little UI changes
 * Rewritten the game logic code, it shouldn't affect the gameplay
+* The domino positions on the board are now calculated when starting and not hard-coded; it won't affect the gameplay
+** The biggest update ever!
+** Time spent - around 40-60 hours

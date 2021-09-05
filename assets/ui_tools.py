@@ -78,7 +78,7 @@ class Button:
                 pygame.draw.rect(self.surface, self.color_click, (self.x, self.y, self.width, self.height))
                 to_return = True
 
-        if outline_width:
+        if outline_width and self.color_outline:
             pygame.draw.rect(self.surface, self.color_outline, (self.x, self.y, self.width, self.height), outline_width)
 
         if self.text and not self.font is None:
@@ -396,8 +396,8 @@ class DropdownList:
         # blit to target
         self.targ_surf.blit(self.surface, (self.orig_x, self.orig_y))
 
-def fancy_blit(surface, x, y, text, font, default_color=COLOR_TEXT, background_color=COLOR_MAIN, reset_at_color=False) -> str:
-    '''Draws the text and returns it in a normal way (without technical symbols), version 2.0'''
+def fancy_blit(surface, x, y, text, font, default_color=COLOR_TEXT, background_color=COLOR_MAIN, return_surfaces=False, reset_at_color=False) -> str:
+    '''Draws the text and returns it in a normal way (without technical symbols), version 2.1'''
     # this is all from minecraft
     rendered_parts = []
     color = -1
@@ -465,15 +465,27 @@ def fancy_blit(surface, x, y, text, font, default_color=COLOR_TEXT, background_c
     size = rendered_parts[-1].get_size()
     if cross:
         pygame.draw.line(rendered_parts[-1], COLOR_INDEX[color], (0, size[1] // 2), (size[0], size[1] // 2), 3)
-    normal += word
-    offset = 0
-    for i in rendered_parts:
-        surface.blit(i, (x + offset, y))
-        offset += i.get_width()
-    font.set_bold(was_bold)
-    font.set_underline(was_underline)
-    font.set_italic(was_italic)
-    return normal
+    if not return_surfaces:
+        normal += word
+        offset = 0
+        for i in rendered_parts:
+            surface.blit(i, (x + offset, y))
+            offset += i.get_width()
+        font.set_bold(was_bold)
+        font.set_underline(was_underline)
+        font.set_italic(was_italic)
+        return normal
+    else:
+        size = 0
+        for i in rendered_parts:
+            size += i.get_width()
+        targ_surf = pygame.Surface((size, i.get_height())).convert_alpha()
+        offset = 0
+        for i in rendered_parts:
+            targ_surf.blit(i, (offset, 0))
+            offset += i.get_width()
+        return targ_surf
+            
 
 class TextField:
     def __init__(self, surface, x, y, font, width=100, height=50, default_value='', hint='', type_='string', outline_color_active=(0, 0, 0), outline_color_inactive=(50, 50, 50), field_color=(240, 240, 240)):
