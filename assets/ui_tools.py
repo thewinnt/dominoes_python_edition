@@ -1,7 +1,25 @@
 import pygame
 import random
+import time
 
-## Pygame UI tools, version 1.0. Based on the libraries used in thewinnt/domino_scoreboard.
+from tkinter import TclError, Tk
+
+def paste():
+    root = Tk()
+    root.withdraw()
+    root.update()
+    targ = root.clipboard_get()
+    root.destroy()
+    return targ
+
+# def copy(text):  # DOESN'T WORK  # no, i will not be using any third-party libraries
+#     root = Tk()
+#     root.withdraw()
+#     root.clipboard_clear()
+#     root.clipboard_append(text)
+#     root.update()
+
+## Pygame UI tools, version 1.3. Based on the libraries used in thewinnt/domino_scoreboard.
 
 list_captures_events = None # if a list is being scrolled, it will capture the events and put itself here
 
@@ -55,31 +73,34 @@ class Button:
         self.font = font
         self.surface = surface
 
-    def draw(self, mouse_pos=None, outline_width=2, click_state=None) -> bool:
+    def draw(self, mouse_pos=None, outline_width=2, click_state=None, draw_bg=True) -> bool:
         '''Draws the button on the screen and returns its click state'''
         # mouse_pos is the position relative to (0, 0) of the surface the button's on, if it isn't the display one
         # click states: None - auto-detect; 0 - not hovered; 1 - hovered, but not pressed; 2 - pressed
         ## click_state can be used for inactive buttons
         is_pressed = pygame.mouse.get_pressed()[0]
         to_return = False
-        if click_state is not None:
-            if click_state == 0:
-                pygame.draw.rect(self.surface, self.color_main, (self.x, self.y, self.width, self.height))
-            elif click_state == 1:
-                pygame.draw.rect(self.surface, self.color_hover, (self.x, self.y, self.width, self.height))
-            elif click_state == 2:
-                pygame.draw.rect(self.surface, self.color_click, (self.x, self.y, self.width, self.height))
-        else:
-            if not self._is_hovered(mouse_pos):
-                pygame.draw.rect(self.surface, self.color_main, (self.x, self.y, self.width, self.height))
-            elif self._is_hovered(mouse_pos) and not is_pressed:
-                pygame.draw.rect(self.surface, self.color_hover, (self.x, self.y, self.width, self.height))
-            elif self._is_hovered(mouse_pos) and is_pressed:
-                pygame.draw.rect(self.surface, self.color_click, (self.x, self.y, self.width, self.height))
-                to_return = True
+        if draw_bg:
+            if click_state is not None:
+                if click_state == 0:
+                    pygame.draw.rect(self.surface, self.color_main, (self.x, self.y, self.width, self.height))
+                elif click_state == 1:
+                    pygame.draw.rect(self.surface, self.color_hover, (self.x, self.y, self.width, self.height))
+                elif click_state == 2:
+                    pygame.draw.rect(self.surface, self.color_click, (self.x, self.y, self.width, self.height))
+            else:
+                if not self._is_hovered(mouse_pos):
+                    pygame.draw.rect(self.surface, self.color_main, (self.x, self.y, self.width, self.height))
+                elif self._is_hovered(mouse_pos) and not is_pressed:
+                    pygame.draw.rect(self.surface, self.color_hover, (self.x, self.y, self.width, self.height))
+                elif self._is_hovered(mouse_pos) and is_pressed:
+                    pygame.draw.rect(self.surface, self.color_click, (self.x, self.y, self.width, self.height))
+                    to_return = True
 
-        if outline_width and self.color_outline:
-            pygame.draw.rect(self.surface, self.color_outline, (self.x, self.y, self.width, self.height), outline_width)
+            if outline_width and self.color_outline:
+                pygame.draw.rect(self.surface, self.color_outline, (self.x, self.y, self.width, self.height), outline_width)
+        else:
+            to_return = self._is_hovered(mouse_pos) and is_pressed
 
         if self.text and not self.font is None:
             text = self.font.render(self.text, 1, self.color_text)
@@ -204,15 +225,17 @@ class Hyperlink:
             return self.is_over(bkp_pos) and is_clicked
 
 class DropdownList:
-    def __init__(self, surface, x, y, options, font, chosen=0, min_width=150, require_hover=False, max_len=6, color_base=COLOR_BASE, color_origin=COLOR_ORIGIN, color_text=COLOR_TEXT, color_outline=COLOR_OUTLINE, color_scroll=COLOR_SCROLLER, color_hover_base=COLOR_HOVER_BASE, color_hover_origin=COLOR_HOVER_ORIGIN, color_hover_scroll=COLOR_HOVER_SCROLLER):
-        '''A dropdown list, version 1.1'''
+    def __init__(self, surface, x, y, options, font, right_sided=True, chosen=0, min_width=150, require_hover=False, max_len=6, color_base=COLOR_BASE, color_origin=COLOR_ORIGIN, color_text=COLOR_TEXT, color_outline=COLOR_OUTLINE, color_scroll=COLOR_SCROLLER, color_hover_base=COLOR_HOVER_BASE, color_hover_origin=COLOR_HOVER_ORIGIN, color_hover_scroll=COLOR_HOVER_SCROLLER):
+        '''A dropdown list, version 1.3'''
         self.x = x
         self.y = y
         self.orig_x = self.x
         self.orig_y = self.y
         self.max_len = max_len
         self.font = font
+        self.surface = surface
         self.targ_surf = surface
+        self.right_sided = right_sided # might be the wanted behavior because the width might be unpredictable
 
         self.color_base = color_base
         self.color_origin = color_origin
@@ -263,8 +286,9 @@ class DropdownList:
         for i in self.options:
             option_sizes.append(self.font.size(i)[0] + int(self.height))
         self.width = max(max(option_sizes), self.min_width)
-        self.x = self.width
-        self.y = 0
+        if not self.right_sided:
+            self.x = self.width
+            self.y = 0
         self.hitbox_closed = [(self.x - self.width, self.y), (self.x, self.y + self.height)] # the corners of the list when it's closed
         self.hitbox_open = [(self.x - self.width, self.y), (self.x, self.y + self.height * (min(len(self.options), self.max_len) + 1))]
         self.hitbox_options = [] # format: self.hitbox_options[option][corner: top left or bottom right][coordinate: x or y]
@@ -281,16 +305,18 @@ class DropdownList:
         hbo = self.hitbox_options # this is much shorter
 
         ## prepare force left side (i was too lazy to rewrite this code)
-        if self.open:
-            self.surface = pygame.Surface((self.hitbox_open[1][0] + 1, self.hitbox_open[1][1] + 1))
-        else:
-            self.surface = pygame.Surface((self.hitbox_closed[1][0] + 1, self.hitbox_closed[1][1] + 1))
+        if not self.right_sided:
+            if self.open:
+                self.surface = pygame.Surface((self.hitbox_open[1][0] + 1, self.hitbox_open[1][1] + 1)).convert_alpha()
+            else:
+                self.surface = pygame.Surface((self.hitbox_closed[1][0] + 1, self.hitbox_closed[1][1] + 1)).convert_alpha()
         
         ## gather events
         if list_captures_events == None or list_captures_events == self:
             pos = list(pygame.mouse.get_pos())
-            pos[0] -= self.orig_x
-            pos[1] -= self.orig_y
+            if not self.right_sided:
+                pos[0] -= self.orig_x
+                pos[1] -= self.orig_y
             if pygame.mouse.get_pressed()[0] and not self.was_pressed:
                 self.was_pressed = True
                 if self.open:
@@ -394,7 +420,8 @@ class DropdownList:
                                                                          self.scroll_len))
 
         # blit to target
-        self.targ_surf.blit(self.surface, (self.orig_x, self.orig_y))
+        if not self.right_sided:
+            self.targ_surf.blit(self.surface, (self.orig_x, self.orig_y))
 
 def fancy_blit(surface, x, y, text, font, default_color=COLOR_TEXT, background_color=COLOR_MAIN, return_surfaces=False, reset_at_color=False) -> str:
     '''Draws the text and returns it in a normal way (without technical symbols), version 2.1'''
@@ -485,11 +512,10 @@ def fancy_blit(surface, x, y, text, font, default_color=COLOR_TEXT, background_c
             targ_surf.blit(i, (offset, 0))
             offset += i.get_width()
         return targ_surf
-            
 
 class TextField:
-    def __init__(self, surface, x, y, font, width=100, height=50, default_value='', hint='', type_='string', outline_color_active=(0, 0, 0), outline_color_inactive=(50, 50, 50), field_color=(240, 240, 240)):
-        '''A rectangle which you can click to write something, version 1.1'''
+    def __init__(self, surface, x, y, font, width=100, height=50, default_value='', hint='', type_='string', outline_color_active=(0, 0, 0), outline_color_inactive=(50, 50, 50), field_color=(240, 240, 240), select_color=(0, 0, 255)):
+        '''A rectangle which you can click to write something, version 2.0-pre1'''
         self.width = width
         self.height = height
 
@@ -504,6 +530,7 @@ class TextField:
         self.outline_color_active = outline_color_active
         self.outline_color_inactive = outline_color_inactive
         self.field_color = field_color
+        self.selection_color = select_color
 
         self.surface = surface
         self.active = False
@@ -512,6 +539,16 @@ class TextField:
 
         self.was_clicked = False
         self.enter = False # if the typing was stopped by pressing Enter
+
+        self.cursor_visible = True
+        self.cursor = len(self.text)
+        self.selection = None
+
+        self.t = time.time()
+        self.cursor_timer = 0.0
+
+        self.key_init = 0.0
+        self.key_timer = 0.0
 
     def is_over(self, bkp_pos=None) -> bool:
         '''Returns true if mouse is hovering the text field'''
@@ -528,68 +565,78 @@ class TextField:
         '''Update the contents of the box and return the new value'''
         self.enter = False
         self.was_clicked = pygame.mouse.get_pressed()[0]
-        if self.type == 'int':
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                        self.was_clicked = True
-                        self.enter = True
-                        break
-                    elif event.key == pygame.K_BACKSPACE:
-                        try:
-                            self.text = str(self.text)[:-1]
-                        except:
-                            pass
-                    else:
-                        try:
-                            lol = int(event.unicode + '1')
-                        except ValueError:
-                            lol = 5
-                        else:
-                            self.text = str(self.text) + event.unicode
-                elif event.type == pygame.MOUSEBUTTONDOWN:
+        for event in pygame.event.get():
+            if event.type == pygame.TEXTINPUT:
+                bkp_text = self.text
+                if self.selection is None:
+                    self.text = str(self.text[:self.cursor]) + event.text + str(self.text[self.cursor:])
+                else:
+                    val1 = min(self.selection)
+                    val2 = max(self.selection)
+                    self.text = str(self.text)[:val1] + event.text + str(self.text)[val2:]
+                    self.selection = None
+                error = False
+                if self.type == 'int':
+                    try:
+                        int(self.text + '0')
+                    except ValueError:
+                        self.text = bkp_text
+                        error = True
+                if self.type == 'float':
+                    try:
+                        float(self.text + '0')
+                    except ValueError:
+                        self.text = bkp_text
+                        error = True
+                if not error:
+                    self.cursor += 1
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
                     self.was_clicked = True
-        elif self.type == 'float':
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                        self.was_clicked = True
-                        self.enter = True
-                        break
-                    elif event.key == pygame.K_BACKSPACE:
-                        try:
-                            self.text = str(self.text)[:-1]
-                        except:
-                            pass
-                    else:
-                        try:
-                            lol = float('1' + event.unicode)
-                        except ValueError:
-                            lol = 5
-                        else:
-                            self.text = str(self.text) + event.unicode
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    self.was_clicked = True
-        else:
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                        self.was_clicked = True
-                        self.enter = True
-                        break
-                    elif event.key == pygame.K_BACKSPACE:
-                        try:
-                            self.text = str(self.text)[:-1]
-                        except:
-                            pass
-                    else:
-                        self.text += event.unicode
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    self.was_clicked = True
+                    self.enter = True
+                    break
+                # elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_DELETE or event.mod == pygame.KMOD_NONE:
+                #     break
+                # else:
+                #     if event.unicode:
+                #         bkp_text = self.text
+                        
+                #         if self.selection is None:
+                #             self.text = str(self.text[:self.cursor]) + event.unicode + str(self.text[self.cursor:])
+                #         else:
+                #             val1 = min(self.selection)
+                #             val2 = max(self.selection)
+                #             self.text = str(self.text)[:val1] + event.unicode + str(self.text)[val2:]
+                #             self.selection = None
+                #         error = False
+                #         if self.type == 'int':
+                #             try:
+                #                 int(self.text + '0')
+                #             except ValueError:
+                #                 self.text = bkp_text
+                #                 error = True
+                #         if self.type == 'float':
+                #             try:
+                #                 float(self.text + '0')
+                #             except ValueError:
+                #                 self.text = bkp_text
+                #                 error = True
+                #         if not error:
+                #             self.cursor += 1
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                self.was_clicked = True
         return self.text
 
-    def draw(self, update=True, text_color=(0, 0, 0), bkp_pos=None) -> str:
+    def draw(self, update=True, text_color=(0, 0, 0), bkp_pos=None, hint_color=(100, 100, 100), fancy_format=False) -> str:
         '''Usage: 'temp = field_name.draw(...); if temp is not False: target = temp' where target is the string you want to get as user input'''
+        self.dt = time.time() - self.t
+        self.t = time.time()
+        self.cursor_timer += self.dt
+
+        if self.cursor_timer >= 0.5:
+            self.cursor_visible = not self.cursor_visible
+            self.cursor_timer = 0.0
+
         self.was_clicked = pygame.mouse.get_pressed()[0]
         if self.active and update and not list_captures_events:
             outline_color = self.outline_color_active
@@ -599,23 +646,233 @@ class TextField:
             outline_color = self.outline_color_inactive
             outline_width = 2
 
+        if self.active:
+            keys = pygame.key.get_pressed()
+
+            if self.selection is not None:
+                val1 = min(self.selection)
+                val2 = max(self.selection)
+
+            if keys[pygame.K_LEFT]:
+                if self.key_init == 0:
+                    self.cursor -= 1
+                    if keys[pygame.K_LSHIFT]:
+                        if self.selection is None:
+                            self.selection = [self.cursor, self.cursor + 1]
+                        else:
+                            if self.selection[0] == self.cursor + 1:
+                                self.selection[0] -= 1
+                            else:
+                                self.selection[1] -= 1
+                    else:
+                        self.selection = None
+                    if self.cursor < 0:
+                        self.cursor = 0
+                self.key_init += self.dt
+                if self.key_init >= 0.5:
+                    self.key_timer += self.dt
+                    if self.key_timer >= 0.05:
+                        self.key_timer = 0
+                        self.cursor -= 1
+                        if keys[pygame.K_LSHIFT]:
+                            if self.selection is None:
+                                self.selection = [self.cursor, self.cursor + 1]
+                            else:
+                                if self.selection[0] == self.cursor + 1:
+                                    self.selection[0] -= 1
+                                else:
+                                    self.selection[1] -= 1
+                        else:
+                            self.selection = None
+                        if self.cursor < 0:
+                            self.cursor = 0
+
+            elif keys[pygame.K_RIGHT]:
+                if self.key_init == 0:
+                    self.cursor += 1
+                    if keys[pygame.K_LSHIFT]:
+                        if self.selection is None:
+                            self.selection = [self.cursor - 1, self.cursor]
+                        else:
+                            if self.selection[1] == self.cursor - 1:
+                                self.selection[1] += 1
+                            else:
+                                self.selection[0] += 1
+                    else:
+                        self.selection = None
+                    if self.cursor > len(self.text):
+                        self.cursor = len(self.text)
+                self.key_init += self.dt
+                if self.key_init >= 0.5:
+                    self.key_timer += self.dt
+                    if self.key_timer >= 0.05:
+                        self.key_timer = 0
+                        self.cursor += 1
+                        if keys[pygame.K_LSHIFT]:
+                            if self.selection is None:
+                                self.selection = [self.cursor - 1, self.cursor]
+                            else:
+                                if self.selection[1] == self.cursor - 1:
+                                    self.selection[1] += 1
+                                else:
+                                    self.selection[0] += 1
+                        else:
+                            self.selection = None
+                        if self.cursor > len(self.text):
+                            self.cursor = len(self.text)
+
+            elif keys[pygame.K_BACKSPACE] and (self.cursor > 0 or self.selection is not None):
+                if self.key_init == 0:
+                    if self.selection is None:
+                        self.text = str(self.text)[:self.cursor-1] + str(self.text)[self.cursor:]
+                        self.cursor -= 1
+                    else:
+                        self.text = str(self.text)[:self.selection[0]] + str(self.text)[self.selection[1]:]
+                        self.selection = None
+                self.key_init += self.dt
+                if self.key_init >= 0.5:
+                    self.key_timer += self.dt
+                    if self.key_timer >= 0.05:
+                        if self.selection is None:
+                            self.key_timer = 0
+                            self.text = str(self.text)[:self.cursor-1] + str(self.text)[self.cursor:]
+                        else:
+                            self.text = str(self.text)[:self.selection[0]] + str(self.text)[self.selection[1]:]
+                            self.selection = None
+                        self.cursor -= 1
+
+            elif keys[pygame.K_DELETE] and self.cursor < len(self.text):
+                if self.key_init == 0:
+                    if self.selection is None:
+                        self.text = str(self.text)[:self.cursor] + str(self.text)[self.cursor+1:]
+                    else:
+                        self.text = str(self.text)[:self.selection[0]] + str(self.text)[self.selection[1]:]
+                        self.selection = None
+                self.key_init += self.dt
+                if self.key_init >= 0.5:
+                    self.key_timer += self.dt
+                    if self.key_timer >= 0.05:
+                        self.key_timer = 0
+                        if self.selection is None:
+                            self.text = str(self.text)[:self.cursor] + str(self.text)[self.cursor+1:]
+                        else:
+                            self.text = str(self.text)[:self.selection[0]] + str(self.text)[self.selection[1]:]
+                            self.selection = None
+
+            elif keys[pygame.K_HOME]:
+                if keys[pygame.K_LSHIFT]:
+                    if self.selection is not None:
+                        if self.selection[0] == self.cursor:
+                            self.selection[0] = 0
+                        else:
+                            self.selection[1] = 0
+                    else:
+                        self.selection = [0, self.cursor]
+                self.cursor = 0
+                
+            elif keys[pygame.K_END]:
+                if keys[pygame.K_LSHIFT]:
+                    if self.selection is not None:
+                        if self.selection[0] == self.cursor:
+                            self.selection[0] = len(self.text)
+                        else:
+                            self.selection[1] = len(self.text)
+                    else:
+                        self.selection = [self.cursor, len(self.text)]
+                self.cursor = len(self.text)
+            elif keys[pygame.K_LCTRL]:
+                if self.key_init == 0:
+                    # if self.selection is not None:  # copying text to the clipboard doesn't seem to work...
+                    #     if keys[pygame.K_x]:
+                    #         copy(self.text[val1:val2])
+                    #         self.text = str(self.text)[:self.selection[0]] + str(self.text)[self.selection[1]:]
+                    #         self.selection = None
+                    #     if keys[pygame.K_c]:
+                    #         copy(self.text[val1:val2])
+                    #         self.selection = None
+                    if keys[pygame.K_v]:
+                        
+                        try:
+                            to_add = paste()
+                        except TclError:
+                            return False
+                        bkp_text = self.text
+                        bkp_cur = self.cursor
+                        if self.selection is None:
+                            self.text = str(self.text[:self.cursor]) + to_add + str(self.text[self.cursor:])
+                            self.cursor = min(self.cursor + len(to_add), len(self.text))
+                        else:
+                            self.text = str(self.text)[:val1] + to_add + str(self.text)[val2:]
+                            self.cursor = val1 + len(to_add)
+                            self.selection = None
+                        err = False
+                        if self.type == 'int':
+                            try:
+                                int(self.text + '0')
+                            except ValueError:
+                                self.text = bkp_text
+                                self.cursor = bkp_cur
+                                err = True
+                        if self.type == 'float':
+                            try:
+                                float(self.text + '0')
+                            except ValueError:
+                                self.text = bkp_text
+                                self.cursor = bkp_cur
+                                err = True
+                        if not err:
+                            self.selection = None
+                    if keys[pygame.K_a]:
+                        self.selection = [0, len(self.text)]
+            else:
+                self.key_init = 0
+
+            if self.selection is not None:
+                val1 = min(self.selection)
+                val2 = max(self.selection)
+        else:
+            self.selection = None
+
         pygame.draw.rect(self.surface, self.field_color, (self.x, self.y, self.width, self.height))
-        text = self.font.render(str(self.text), 4, text_color, self.field_color)
-        self.surface.blit(text, (self.x + 5, self.y + self.height // 2 - text.get_height() // 2))
+
+        if self.selection is None:
+            text = self.font.render(str(self.text), 4, text_color, self.field_color)
+            self.surface.blit(text, (self.x + 5, self.y + self.height // 2 - text.get_height() // 2))
+        else:
+            text = self.font.render(str(self.text[:val1]), 4, text_color, self.field_color)
+            self.surface.blit(text, (self.x + 5, self.y + self.height // 2 - text.get_height() // 2))
+
+            offset = text.get_width()
+
+            text = self.font.render(str(self.text[val1:val2]), 4, self.field_color, self.selection_color)
+            self.surface.blit(text, (self.x + 5 + offset, self.y + self.height // 2 - text.get_height() // 2))
+
+            offset += text.get_width()
+
+            text = self.font.render(str(self.text[val2:]), 4, text_color, self.field_color)
+            self.surface.blit(text, (self.x + 5 + offset, self.y + self.height // 2 - text.get_height() // 2))
 
         if self.text == '':
-            fancy_blit(self.surface, self.x, self.y + self.height // 2 - text.get_height() // 2, self.hint, self.font, text_color, self.field_color)
+            fancy_blit(self.surface, self.x + 5, self.y + self.height // 2 - text.get_height() // 2, self.hint, self.font, hint_color, self.field_color)
+
+        if self.active and self.cursor_visible:
+            size = self.font.size(self.text[:self.cursor])
+            pygame.draw.rect(self.surface, text_color, (self.x + size[0] + 5, self.y + self.height // 2 - text.get_height() // 2, 2, size[1]))
 
         pygame.draw.rect(self.surface, outline_color, (self.x, self.y, self.width, self.height), outline_width)
 
         if update and self.was_clicked and not list_captures_events:
-            self.was_clicked = False
-            temp = self.active
-            self.active = self.is_over(bkp_pos)
-            if self.active and not temp:
-                pygame.event.get()
-            if temp == self.active or self.active:
-                return False
+            if not self.enter:
+                self.was_clicked = False
+                temp = self.active
+                self.active = self.is_over(bkp_pos)
+                if self.active and not temp:
+                    pygame.event.get()
+                if temp == self.active or self.active:
+                    return False
+            else:
+                self.active = False
+                self.enter = False
             if not self.active:
                 if self.type == 'string':
                     return self.text
@@ -638,16 +895,16 @@ class TextField:
 
 if __name__ == '__main__': # debug
     pygame.init()
-    window = pygame.display.set_mode((360, 360))
-    default_font = pygame.font.Font(pygame.font.get_default_font(), 30)
-    underlined_font = pygame.font.Font(pygame.font.get_default_font(), 30)
+    window = pygame.display.set_mode((360, 460))
+    default_font = pygame.font.SysFont('arialms', 30)
+    underlined_font = pygame.font.SysFont("arialms", 30)
     underlined_font.set_underline(True)
 
-    test_list = DropdownList(window, 10, 10, ['Option 1', 'Two', '3', 'Четыре (пять)', 'Never', 'Gonna', 'Give', 'You', 'Up'], default_font, 0, 250)
+    test_list = DropdownList(window, 10, 10, ['Option 1', 'Two', '3', 'Четыре (пять)', 'Never', 'Gonna', 'Give', 'You', 'Up'], default_font, False, 0, 250)
     test_button = Button(window, 10, 70, 100, 50, default_font, 'button')
-    test_field = TextField(window, 10, 130, default_font, 250, 50, hint='§7§oType something...')
-    test_switch = Switch(window, 10, 190, 100, 50)
-    test_link = Hyperlink(window, 10, 250, 'Click me!', underlined_font)
+    test_field = TextField(window, 10, 130, default_font, 250, 150, hint='§7§oType something...')
+    test_switch = Switch(window, 10, 290, 100, 50)
+    test_link = Hyperlink(window, 10, 350, 'Click me!', underlined_font)
 
     lol = False
     add = ''
@@ -674,9 +931,9 @@ if __name__ == '__main__': # debug
                     test_list.remove_option(add)
                 except: 
                     pass
-        fancy_blit(window, 10, 310, '§00§11§22§33§m§44§55§66§n§77§88§99§o§aa§bb§cc§r§l§k§dd§ee§ff', default_font)
+        fancy_blit(window, 10, 410, '§00§11§22§33§m§44§55§66§n§77§88§99§o§aa§bb§cc§r§l§k§dd§ee§ff', default_font)
         temp = test_list.draw()
         if temp is not None:
             print('You chose "' + test_list.options[temp] + '"')
-        pygame.time.Clock().tick(30)
+        pygame.time.Clock().tick(0)
         pygame.display.update()

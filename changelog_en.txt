@@ -169,3 +169,20 @@ Beta 1.7 (05.09.2021)
 * The domino positions on the board are now calculated when starting and not hard-coded; it won't affect the gameplay
 ** The biggest update ever!
 ** Time spent - around 40-60 hours
+
+Beta 1.8-pre1 (27.09.2021)
++ You can now change the language! Default is English, it can be changed in the settings
++ You can now change the way dominoes are placed on the board!
++ You can now scroll everyone's inventories
+* The player inventory fields are now a bit smaller when there are two players
+* Moving and changing the scale of the board now works correctly during bot turns
+* You can now select text, move the cursor and paste text in the text fields (no copying yet)
+* Added a respective color for the selection background (will be added automatically)
+* Added the colors for the numbers 10-18 (at the end)
+* The theme version is now 2
+* Future settings are now saved
+* Improved theme bacwards compatibility when stuff is added right before metadata
+* You can no longer see the bots' inventories outside of "Bot battle"
+* The "Player victory show time" parameter is now only shown when it matters
+* The English translation will now be consistent across versions because I won't have to redo it every time
+** Time spent - 5-10 hours
